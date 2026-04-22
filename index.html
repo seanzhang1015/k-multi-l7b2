@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K模块 Multi计算器 L7B2 (收益率10941.4%)</title>
+    <meta name="description" content="L7B2策略仓位倍数计算器">
+    <meta name="theme-color" content="#27ae60">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="K-Multi">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .header {
+            background: #27ae60;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 1.5em;
+        }
+        .header .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .threshold-box {
+            background: #e74c3c;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .threshold-box p {
+            color: white;
+            font-weight: bold;
+        }
+        .input-section {
+            background: #2c3e50;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            color: #ecf0f1;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #34495e;
+            color: white;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: 2px solid #3498db;
+        }
+        .hint {
+            color: #3498db;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        .result-box {
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .result-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+        .result-fail {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+        }
+        .result-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+        }
+        .result-status {
+            font-size: 1.2em;
+            color: white;
+            margin-top: 10px;
+        }
+        .details-box {
+            background: #2c3e50;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .details-box h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #34495e;
+        }
+        .detail-label {
+            color: #95a5a6;
+        }
+        .detail-value {
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+        .highlight {
+            color: #27ae60;
+        }
+        .warning {
+            color: #e74c3c;
+        }
+        .info-box {
+            background: #3498db;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .info-box p {
+            color: white;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>K模块 Multi计算器</h1>
+            <p class="subtitle">L7B2策略 | 收益率 10941.4% | 前2只按mult比例分配</p>
+        </div>
+        
+        <div class="threshold-box">
+            <p>阈值: multi >= 0.5 (低于此值不买入)</p>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label>股票代码 (6位)</label>
+                <input type="text" id="stockCode" value="600000" maxlength="6" oninput="calculate()">
+                <p class="hint" id="prefixHint">前缀: 600 (上海主板)</p>
+            </div>
+            
+            <div class="input-group">
+                <label>涨停日收盘价 (元)</label>
+                <input type="number" id="closePrice" value="10" step="0.01" oninput="calculate()">
+                <p class="hint" id="priceHint">价格区间: 10-20元</p>
+            </div>
+            
+            <div class="input-group">
+                <label>买入日星期</label>
+                <select id="weekday" onchange="calculate()">
+                    <option value="0">周一</option>
+                    <option value="1">周二</option>
+                    <option value="2">周三</option>
+                    <option value="3">周四</option>
+                    <option value="4">周五</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="result-box" id="resultBox">
+            <div class="result-value" id="multiValue">1.00</div>
+            <div class="result-status" id="resultStatus">可买入</div>
+        </div>
+        
+        <div class="details-box">
+            <h3>权重详情</h3>
+            <div class="detail-row">
+                <span class="detail-label">基础仓位</span>
+                <span class="detail-value">0.5</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">市场权重</span>
+                <span class="detail-value" id="marketWeight">1.0 (深圳/上海)</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">价格权重</span>
+                <span class="detail-value" id="priceWeight">1.0 (10-20元)</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">星期权重</span>
+                <span class="detail-value" id="weekdayWeight">1.0</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">前缀权重</span>
+                <span class="detail-value" id="prefixWeight">0.05 (600)</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">最大限制</span>
+                <span class="detail-value">15.0</span>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <p>参数来源: gen_l7b2_report_real.py L7B2策略 (10941.4%)</p>
+            <p>死区: 0.65 ≤ mult &lt; 1.3 跳过 | 买入: 前2只最高mult按比例分配</p>
+        </div>
+    </div>
+    
+    <script>
+        // L7B2参数配置 (与gen_l7b2_report_real.py一致)
+        const CONFIG = {
+            base: 0.5,
+            maxMult: 15.0,
+            threshold: 0.5,
+            deadZoneLow: 0.65,
+            deadZoneHigh: 1.3,
+            // 市场权重
+            market: {
+                cy: 50.0  // 创业板(30开头)
+            },
+            // 价格权重
+            price: {
+                p50: 0.8,
+                p40: 5.0,
+                p30: 10.0,
+                p20: 0.6,
+                p10: 1.0,
+                p5: 0.4,
+                pBelow5: 0.5
+            },
+            // 星期权重 (0=周一, 1=周二, 2=周三, 3=周四, 4=周五)
+            weekday: {
+                0: 0.9,   // 周一 w1
+                1: 1.0,   // 周二
+                2: 1.2,   // 周三 w3
+                3: 0.05,  // 周四 w4
+                4: 0.85   // 周五 w5
+            },
+            // 前缀权重
+            prefix: {
+                '001': 120.0,
+                '002': 1.18,
+                '300': 10.0,
+                '603': 2.0,
+                '601': 2.0,
+                '605': 0.3,
+                '000': 1.0,
+                '600': 0.05,
+                '003': 0.05
+            }
+        };
+        
+        function getMarketInfo(stock) {
+            if (stock.startsWith('30')) {
+                return { weight: CONFIG.market.cy, name: '创业板', market: '创业' };
+            } else if (stock.startsWith('00')) {
+                return { weight: 1.0, name: '深圳主板/中小板', market: '深圳' };
+            } else if (stock.startsWith('60')) {
+                return { weight: 1.0, name: '上海主板', market: '上海' };
+            }
+            return { weight: 1.0, name: '其他', market: '未知' };
+        }
+        
+        function getPriceInfo(price) {
+            if (price >= 50) return { weight: CONFIG.price.p50, range: '>=50元' };
+            if (price >= 40) return { weight: CONFIG.price.p40, range: '40-50元' };
+            if (price >= 30) return { weight: CONFIG.price.p30, range: '30-40元' };
+            if (price >= 20) return { weight: CONFIG.price.p20, range: '20-30元' };
+            if (price >= 10) return { weight: CONFIG.price.p10, range: '10-20元' };
+            if (price >= 5) return { weight: CONFIG.price.p5, range: '5-10元' };
+            return { weight: CONFIG.price.pBelow5, range: '<5元' };
+        }
+        
+        function getWeekdayInfo(day) {
+            const names = ['周一', '周二', '周三', '周四', '周五'];
+            const weight = CONFIG.weekday[day] || 1.0;
+            return { weight: weight, name: names[day] };
+        }
+        
+        function getPrefixInfo(stock) {
+            const pf = stock.substring(0, 3);
+            const weight = CONFIG.prefix[pf] || 1.0;
+            return { weight: weight, prefix: pf };
+        }
+        
+        function calculate() {
+            const stock = document.getElementById('stockCode').value.padEnd(6, '0').substring(0, 6);
+            const price = parseFloat(document.getElementById('closePrice').value) || 0;
+            const weekday = parseInt(document.getElementById('weekday').value);
+            
+            // 计算各权重
+            const marketInfo = getMarketInfo(stock);
+            const priceInfo = getPriceInfo(price);
+            const weekdayInfo = getWeekdayInfo(weekday);
+            const prefixInfo = getPrefixInfo(stock);
+            
+            // 计算最终multi
+            let mult = CONFIG.base;
+            mult *= marketInfo.weight;
+            mult *= priceInfo.weight;
+            mult *= weekdayInfo.weight;
+            mult *= prefixInfo.weight;
+            mult = Math.min(mult, CONFIG.maxMult);
+            
+            // 更新提示信息
+            document.getElementById('prefixHint').textContent = 
+                `前缀: ${prefixInfo.prefix} (${marketInfo.name})`;
+            document.getElementById('priceHint').textContent = 
+                `价格区间: ${priceInfo.range}`;
+            
+            // 更新权重详情
+            document.getElementById('marketWeight').textContent = 
+                `${marketInfo.weight} (${marketInfo.name})`;
+            document.getElementById('priceWeight').textContent = 
+                `${priceInfo.weight} (${priceInfo.range})`;
+            document.getElementById('weekdayWeight').textContent = 
+                `${weekdayInfo.weight} (${weekdayInfo.name})`;
+            document.getElementById('prefixWeight').textContent = 
+                `${prefixInfo.weight} (${prefixInfo.prefix})`;
+            
+            // 检查死区
+            let deadZone = '';
+            if (mult >= CONFIG.deadZoneLow && mult < CONFIG.deadZoneHigh) {
+                deadZone = ` (死区 ${CONFIG.deadZoneLow}-${CONFIG.deadZoneHigh}, 跳过)`;
+            }
+            
+            // 更新结果
+            const resultBox = document.getElementById('resultBox');
+            const multiValue = document.getElementById('multiValue');
+            const resultStatus = document.getElementById('resultStatus');
+            
+            multiValue.textContent = mult.toFixed(2);
+            
+            if (mult >= CONFIG.deadZoneLow && mult < CONFIG.deadZoneHigh) {
+                resultBox.className = 'result-box result-fail';
+                resultStatus.textContent = `死区跳过 (${CONFIG.deadZoneLow}≤mult<${CONFIG.deadZoneHigh})`;
+            } else if (mult >= CONFIG.threshold) {
+                resultBox.className = 'result-box result-success';
+                resultStatus.textContent = '可买入' + (mult >= CONFIG.deadZoneHigh ? ' (黄金区)' : '');
+            } else {
+                resultBox.className = 'result-box result-fail';
+                resultStatus.textContent = '不可买入 (低于阈值)';
+            }
+        }
+        
+        // 注册 Service Worker (PWA离线支持)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+        // 页面加载时计算一次
+        calculate();
+    </script>
+</body>
+</html>
